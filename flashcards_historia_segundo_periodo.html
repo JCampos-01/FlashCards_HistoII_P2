@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#17243a">
+<title>Flashcards | Historia · Segundo periodo</title>
+<style>
+:root {
+  --ink: #17243a;
+  --muted: #687286;
+  --paper: #f5f2eb;
+  --card: #fffdf8;
+  --line: #e4dfd4;
+  --accent: #c56e4c;
+  --accent-dark: #a95335;
+  --gold: #d8ad62;
+  --soft: #ece7dc;
+  --good: #3d806a;
+  --shadow: 0 18px 45px rgba(28, 38, 55, .12);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background: radial-gradient(circle at 85% 8%, #e9dfcf 0, transparent 27%), var(--paper);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.shell { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 34px 0 30px; }
+.topline { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:22px; }
+.eyebrow { display:inline-flex; align-items:center; gap:9px; color:var(--accent-dark); font-size:.76rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+.eyebrow::before { content:""; width:24px; height:2px; background:var(--gold); }
+.tag { color:#657087; background:rgba(255,255,255,.55); border:1px solid var(--line); border-radius:999px; padding:7px 11px; font-size:.75rem; }
+h1 { font-family: Georgia, "Times New Roman", serif; font-weight:600; font-size:clamp(2.25rem, 6vw, 3.7rem); letter-spacing:-.045em; line-height:1.03; margin:0; }
+.subtitle { color:var(--muted); margin:12px 0 26px; line-height:1.55; max-width:680px; }
+.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+.stat { background:rgba(255,253,248,.72); border:1px solid var(--line); border-radius:14px; padding:12px 15px; }
+.stat strong { display:block; font-size:1.22rem; font-variant-numeric:tabular-nums; }
+.stat span { color:var(--muted); font-size:.76rem; }
+.progress-wrap { height:6px; border-radius:10px; background:#e6e0d5; overflow:hidden; margin:0 0 24px; }
+.progress-bar { width:0%; height:100%; background:linear-gradient(90deg,var(--accent),var(--gold)); transition:width .25s ease; }
+.toolbar { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(190px,.8fr) auto; gap:10px; margin-bottom:14px; }
+.field { width:100%; border:1px solid var(--line); background:rgba(255,253,248,.88); color:var(--ink); padding:12px 13px; border-radius:11px; outline:none; }
+.field:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(197,110,76,.12); }
+.tool-btn, .nav-btn { border:1px solid var(--line); border-radius:11px; background:var(--card); color:var(--ink); padding:11px 14px; font-weight:700; transition:.18s ease; }
+.tool-btn:hover, .nav-btn:hover { transform:translateY(-1px); border-color:#c7bba8; }
+.tool-btn.primary, .nav-btn.primary { color:white; background:var(--ink); border-color:var(--ink); }
+.tool-btn.primary:hover, .nav-btn.primary:hover { background:#263956; }
+.deck-meta { display:flex; justify-content:space-between; gap:12px; align-items:center; margin:13px 2px 10px; color:var(--muted); font-size:.83rem; }
+.deck-meta strong { color:var(--ink); }
+.stage { perspective:1400px; }
+.flashcard { position:relative; min-height:360px; width:100%; border:0; padding:0; background:transparent; text-align:left; perspective:1400px; outline:none; }
+.card-inner { position:relative; min-height:360px; width:100%; transform-style:preserve-3d; transition:transform .58s cubic-bezier(.2,.7,.2,1); }
+.flashcard.flipped .card-inner { transform:rotateY(180deg); }
+.face { position:absolute; inset:0; min-height:360px; display:flex; flex-direction:column; justify-content:space-between; padding:clamp(22px,4vw,38px); border-radius:22px; border:1px solid var(--line); background:var(--card); box-shadow:var(--shadow); backface-visibility:hidden; -webkit-backface-visibility:hidden; overflow:hidden; }
+.face::after { content:""; position:absolute; width:220px; height:220px; border:1px solid rgba(216,173,98,.24); border-radius:50%; right:-105px; bottom:-128px; pointer-events:none; }
+.face.back { transform:rotateY(180deg); background:#fffaf0; }
+.face-top { display:flex; justify-content:space-between; align-items:center; gap:12px; position:relative; z-index:1; }
+.topic-pill { display:inline-block; max-width:78%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-radius:999px; background:#f1e8d9; color:#87563d; padding:7px 11px; font-size:.73rem; font-weight:800; letter-spacing:.02em; }
+.side-label { color:#8d94a1; font-size:.72rem; letter-spacing:.13em; font-weight:800; text-transform:uppercase; }
+.card-copy { position:relative; z-index:1; max-width:790px; margin:30px 0; font-family:Georgia, "Times New Roman", serif; font-size:clamp(1.55rem,3.5vw,2.35rem); line-height:1.28; letter-spacing:-.018em; }
+.back .card-copy { font-family:inherit; font-size:clamp(1.12rem,2.2vw,1.42rem); line-height:1.75; letter-spacing:0; white-space:pre-line; }
+.face-bottom { position:relative; z-index:1; display:flex; justify-content:space-between; align-items:center; gap:10px; color:#8b91a0; font-size:.8rem; }
+.flip-hint { display:flex; align-items:center; gap:7px; color:var(--accent-dark); font-weight:750; }
+.controls { display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap; margin:19px 0 12px; }
+.nav-btn { min-width:112px; }
+.nav-btn.flip { min-width:150px; }
+.mark-row { display:flex; justify-content:center; margin:10px 0 20px; }
+.master-btn { border:1px solid #c9d9d1; background:#edf4f0; color:#326d59; border-radius:999px; padding:9px 15px; font-weight:750; }
+.master-btn.done { background:var(--good); color:white; border-color:var(--good); }
+.bottom-tools { display:flex; justify-content:space-between; gap:10px; align-items:center; border-top:1px solid var(--line); padding-top:17px; margin-top:20px; }
+.text-btn { background:transparent; border:0; color:var(--muted); padding:7px 0; font-size:.82rem; font-weight:700; }
+.text-btn:hover { color:var(--accent-dark); }
+.empty { text-align:center; padding:58px 20px; background:var(--card); border:1px dashed #d4cbbd; border-radius:18px; color:var(--muted); }
+.empty strong { display:block; color:var(--ink); font-size:1.15rem; margin-bottom:8px; }
+.footer { color:#8a8f9a; font-size:.75rem; text-align:center; margin-top:27px; line-height:1.6; }
+@media (max-width:700px) {
+ .shell{padding-top:23px}.topline{align-items:flex-start}.tag{display:none}.stats{gap:7px}.stat{padding:10px}.stat strong{font-size:1.05rem}.stat span{font-size:.68rem}
+ .toolbar{grid-template-columns:1fr 1fr}.toolbar input{grid-column:1/-1}.toolbar button{grid-column:1/-1}
+ .flashcard,.card-inner,.face{min-height:390px}.face{border-radius:18px}.card-copy{margin:24px 0}.nav-btn{min-width:0;flex:1}.nav-btn.flip{flex:1.25;min-width:120px}
+ .bottom-tools{align-items:flex-start}.bottom-tools button{font-size:.76rem}
+}
+@media (prefers-reduced-motion:reduce){.card-inner{transition:none}*,*::before,*::after{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <div class="topline">
+    <div class="eyebrow">Historia · Segundo periodo</div>
+    <div class="tag">Guía de estudio · Preparatoria</div>
+  </div>
+  <h1>Flashcards de Historia</h1>
+  <p class="subtitle">Estudia por etapas, comprueba lo que recuerdas y voltea cada tarjeta para consultar la respuesta. El mazo recoge fechas, personajes, causas, medidas, consecuencias y comparaciones de la guía.</p>
+
+  <section class="stats" aria-label="Progreso de estudio">
+    <div class="stat"><strong id="totalStat">0</strong><span>tarjetas en total</span></div>
+    <div class="stat"><strong id="masteredStat">0</strong><span>marcadas como dominadas</span></div>
+    <div class="stat"><strong id="remainingStat">0</strong><span>por estudiar</span></div>
+  </section>
+  <div class="progress-wrap" aria-label="Progreso"><div class="progress-bar" id="progressBar"></div></div>
+
+  <section class="toolbar" aria-label="Buscar y filtrar tarjetas">
+    <input class="field" id="searchInput" type="search" placeholder="Buscar un concepto, fecha o personaje…" autocomplete="off">
+    <select class="field" id="topicSelect" aria-label="Filtrar por tema"><option value="all">Todos los temas</option></select>
+    <button class="tool-btn" id="pendingBtn" type="button" aria-pressed="false">Ver pendientes</button>
+  </section>
+
+  <div class="deck-meta">
+    <span id="topicLabel">Todos los temas</span>
+    <span><strong id="position">1 / 0</strong></span>
+  </div>
+
+  <section class="stage" id="stage">
+    <button class="flashcard" id="flashcard" type="button" aria-label="Voltear tarjeta para ver la respuesta" aria-pressed="false">
+      <div class="card-inner">
+        <article class="face front">
+          <div class="face-top"><span class="topic-pill" id="frontTopic">Tema</span><span class="side-label">Pregunta</span></div>
+          <div class="card-copy" id="questionText">Cargando…</div>
+          <div class="face-bottom"><span id="frontNumber">Tarjeta 1</span><span class="flip-hint">Voltear para responder <span aria-hidden="true">↻</span></span></div>
+        </article>
+        <article class="face back">
+          <div class="face-top"><span class="topic-pill" id="backTopic">Tema</span><span class="side-label">Respuesta</span></div>
+          <div class="card-copy" id="answerText"></div>
+          <div class="face-bottom"><span id="backNumber">Respuesta</span><span class="flip-hint">Volver a la pregunta <span aria-hidden="true">↻</span></span></div>
+        </article>
+      </div>
+    </button>
+  </section>
+
+  <div class="controls" id="controls">
+    <button class="nav-btn" id="prevBtn" type="button">← Anterior</button>
+    <button class="nav-btn primary flip" id="flipBtn" type="button">Voltear tarjeta ↻</button>
+    <button class="nav-btn" id="nextBtn" type="button">Siguiente →</button>
+  </div>
+  <div class="mark-row" id="markRow"><button class="master-btn" id="masterBtn" type="button">✓ La domino</button></div>
+
+  <div class="bottom-tools">
+    <button class="text-btn" id="shuffleBtn" type="button">⤨ Mezclar tarjetas</button>
+    <button class="text-btn" id="resetBtn" type="button">Reiniciar progreso</button>
+  </div>
+  <p class="footer">Elaborado a partir del documento “Guía de estudio · Historia · Segundo periodo”.<br>Atajos: ← anterior · → siguiente · espacio para voltear.</p>
+</main>
+<script>
+const originalCards = [{"id": 1, "topic": "Revolución de Ayutla", "q": "¿Cuándo, dónde y por quién fue proclamado el Plan de Ayutla?", "a": "En marzo de 1854, en Guerrero. Fue encabezado originalmente por Florencio Villarreal y secundado por Juan Álvarez y liberales exiliados."}, {"id": 2, "topic": "Revolución de Ayutla", "q": "¿Cuál era el objetivo político principal del Plan de Ayutla?", "a": "Desconocer a Antonio López de Santa Anna y a los funcionarios que hubieran traicionado la confianza de los pueblos."}, {"id": 3, "topic": "Revolución de Ayutla", "q": "¿Qué proponía el Plan de Ayutla para elegir un nuevo gobernante?", "a": "Convocar a un representante por cada estado y territorio para elegir a un presidente interino."}, {"id": 4, "topic": "Revolución de Ayutla", "q": "¿Qué debía hacer el presidente interino de acuerdo con el Plan de Ayutla?", "a": "Convocar a un Congreso extraordinario para constituir a la nación como una República representativa popular."}, {"id": 5, "topic": "Revolución de Ayutla", "q": "¿Cómo reaccionó Santa Anna ante la Revolución de Ayutla?", "a": "Intentó mantenerse en el poder mediante un plebiscito y recurrió al terror, con fusilamientos y deportaciones. Al sentirse cercado, abandonó el poder y huyó a La Habana."}, {"id": 6, "topic": "Revolución de Ayutla", "q": "¿Por qué fue importante la Revolución de Ayutla?", "a": "Fue la primera revolución ideológica de México; puso fin al último gobierno de Santa Anna, dio origen al Congreso que redactó la Constitución de 1857 y mostró el rechazo a la dictadura, la corrupción y la falta de libertad de prensa."}, {"id": 7, "topic": "Liberales y conservadores", "q": "¿Qué forma de organización política defendían los liberales?", "a": "Una República federal, representativa y popular, tomando como modelo a Estados Unidos. Buscaban limitar el poder central y aumentar el de los estados."}, {"id": 8, "topic": "Liberales y conservadores", "q": "¿Qué organización política defendían los conservadores?", "a": "Una República centralista, con un modelo político y económico afín al orden virreinal y estados sometidos al poder central."}, {"id": 9, "topic": "Liberales y conservadores", "q": "¿Qué relación entre Iglesia y Estado proponían los liberales?", "a": "La separación entre la Iglesia y el Estado."}, {"id": 10, "topic": "Liberales y conservadores", "q": "¿Qué papel querían conservar los conservadores para la Iglesia?", "a": "Que mantuviera el control de la educación, los matrimonios y los cementerios; también defendían que la religión católica fuera la única reconocida y aceptada."}, {"id": 11, "topic": "Liberales y conservadores", "q": "¿Qué proponían los conservadores respecto al ejército?", "a": "Defendían su fortalecimiento y el aumento de sus efectivos."}, {"id": 12, "topic": "Liberales y conservadores", "q": "¿Qué posición tenían los liberales y conservadores respecto a los privilegios ante la ley?", "a": "Los liberales defendían que la ley fuera igual para todos y que el ejército y el clero no tuvieran privilegios. Los conservadores sostenían que la Iglesia y el Estado debían gozar de privilegios."}, {"id": 13, "topic": "Liberales y conservadores", "q": "¿Qué proponían los liberales respecto a la propiedad de la tierra?", "a": "Evitar grandes propietarios que dañaran la economía y repartir la tierra en pequeñas propiedades, incluyendo tierras de la Iglesia y comunales indígenas."}, {"id": 14, "topic": "Liberales y conservadores", "q": "¿Qué defendían los conservadores respecto a las propiedades de la Iglesia?", "a": "Que las propiedades de la Iglesia fueran respetadas."}, {"id": 15, "topic": "Liberales y conservadores", "q": "¿Qué libertades individuales defendían los liberales?", "a": "Las libertades de expresión, trabajo y culto."}, {"id": 16, "topic": "Liberales y conservadores", "q": "¿Cuál era la diferencia central entre liberales y conservadores sobre la religión?", "a": "Los liberales defendían la separación Iglesia-Estado y la libertad de culto; los conservadores defendían la religión católica como la única reconocida."}, {"id": 17, "topic": "Leyes de Reforma y Constitución de 1857", "q": "¿Qué establecía la Ley Juárez?", "a": "Suprimía los fueros militar y eclesiástico, eliminando el privilegio de ser juzgados por tribunales propios."}, {"id": 18, "topic": "Leyes de Reforma y Constitución de 1857", "q": "¿Quién impulsó la Ley Lerdo y qué establecía?", "a": "Miguel Lerdo de Tejada. Obligaba a las corporaciones civiles y religiosas a desamortizar sus fincas rústicas y urbanas, es decir, venderlas o rentarlas."}, {"id": 19, "topic": "Leyes de Reforma y Constitución de 1857", "q": "¿Qué establecía la Ley Iglesias?", "a": "José María Iglesias la impulsó. Prohibía el cobro de obvenciones parroquiales a las personas pobres y la coacción de votos."}, {"id": 20, "topic": "Leyes de Reforma y Constitución de 1857", "q": "¿Cuándo se promulgó la Constitución Federal de 1857 y cuántos artículos tenía?", "a": "El 5 de febrero de 1857; tenía 128 artículos."}, {"id": 21, "topic": "Leyes de Reforma y Constitución de 1857", "q": "¿Qué forma de gobierno estableció la Constitución de 1857?", "a": "Una República representativa, democrática y federal, dividida en tres poderes: Ejecutivo, Legislativo y Judicial."}, {"id": 22, "topic": "Leyes de Reforma y Constitución de 1857", "q": "¿Cómo quedó organizado el Poder Legislativo en la Constitución de 1857?", "a": "En una sola cámara: la Cámara de Diputados."}, {"id": 23, "topic": "Leyes de Reforma y Constitución de 1857", "q": "¿Qué institución encabezaría el Poder Judicial según la Constitución de 1857?", "a": "La Suprema Corte de Justicia."}, {"id": 24, "topic": "Leyes de Reforma y Constitución de 1857", "q": "¿En quién residía originalmente la soberanía nacional según la Constitución de 1857?", "a": "En el pueblo."}, {"id": 25, "topic": "Leyes de Reforma y Constitución de 1857", "q": "¿Cómo estaba integrado el territorio nacional según la Constitución de 1857?", "a": "Por 24 estados y el territorio de Baja California."}, {"id": 26, "topic": "Leyes de Reforma y Constitución de 1857", "q": "¿Qué garantías individuales incorporó la Constitución de 1857?", "a": "Libertad de educación, trabajo, expresión, petición, asociación y tránsito; derecho de propiedad e igualdad ante la ley."}, {"id": 27, "topic": "Guerra de los Tres Años", "q": "¿Entre qué años ocurrió la Guerra de los Tres Años o Guerra de Reforma?", "a": "Entre 1858 y 1860."}, {"id": 28, "topic": "Guerra de los Tres Años", "q": "¿Qué provocó el inicio de la Guerra de Reforma?", "a": "La oposición conservadora a la Constitución de 1857. Félix Zuloaga proclamó el Plan de Tacubaya para desconocerla y apresar a Juárez."}, {"id": 29, "topic": "Guerra de los Tres Años", "q": "¿Por qué Benito Juárez asumió la presidencia después de la renuncia de Comonfort?", "a": "Porque, tras la renuncia de Ignacio Comonfort, Juárez asumió constitucionalmente la presidencia."}, {"id": 30, "topic": "Guerra de los Tres Años", "q": "¿Por qué se dice que durante la Guerra de Reforma hubo dos presidentes?", "a": "Porque existía un gobierno liberal encabezado por Benito Juárez y uno conservador encabezado primero por Félix Zuloaga y después por Miguel Miramón."}, {"id": 31, "topic": "Guerra de los Tres Años", "q": "¿Qué establecía el Tratado McLane-Ocampo?", "a": "Concedía a Estados Unidos el libre tránsito perpetuo por el Istmo de Tehuantepec y la frontera norte, a cambio del reconocimiento del gobierno liberal. No entró en vigor por completo."}, {"id": 32, "topic": "Guerra de los Tres Años", "q": "¿Qué buscaba el Tratado Mon-Almonte?", "a": "El reconocimiento del bando conservador por España. Prometía pagar indemnizaciones a españoles perjudicados por las guerras civiles y aceptaba la idea de un protectorado español."}, {"id": 33, "topic": "Guerra de los Tres Años", "q": "¿Qué medidas incluyeron las Leyes de Reforma promulgadas por Juárez durante la guerra?", "a": "Nacionalización de los bienes del clero; separación definitiva de Iglesia y Estado; supresión de órdenes religiosas; matrimonio y registro civil; secularización de cementerios; libertad de cultos y supresión de relaciones diplomáticas con la Santa Sede."}, {"id": 34, "topic": "Guerra de los Tres Años", "q": "¿Qué batalla puso fin a la Guerra de Reforma y quién derrotó a los conservadores?", "a": "La batalla de Calpulalpan, en diciembre de 1860. El general Jesús González Ortega derrotó a las tropas conservadoras."}, {"id": 35, "topic": "Guerra de los Tres Años", "q": "¿Cuándo regresó Juárez triunfante a la capital después de la Guerra de Reforma?", "a": "En enero de 1861."}, {"id": 36, "topic": "Intervención francesa", "q": "¿En qué situación económica quedó México al terminar la Guerra de Reforma?", "a": "Quedó en bancarrota y el gobierno de Benito Juárez enfrentaba graves problemas por falta de recursos económicos."}, {"id": 37, "topic": "Intervención francesa", "q": "¿Qué decidió Juárez en 1861 respecto a la deuda externa?", "a": "Expidió un decreto para suspender durante dos años el pago de la deuda externa."}, {"id": 38, "topic": "Intervención francesa", "q": "¿Qué países se inconformaron por la suspensión del pago de la deuda externa?", "a": "Inglaterra, España y Francia."}, {"id": 39, "topic": "Intervención francesa", "q": "¿Qué proyecto propusieron los monarquistas mexicanos en Europa junto con Napoleón III?", "a": "Propusieron establecer un imperio “latino” en México que sirviera de contrapeso a la expansión anglosajona."}, {"id": 40, "topic": "Intervención francesa", "q": "¿Qué papel tuvo la suspensión de pagos en la intervención europea?", "a": "Francia la utilizó como pretexto e invitó a Gran Bretaña y España a la Convención de Londres para presionar a México."}, {"id": 41, "topic": "Intervención francesa", "q": "¿Qué fueron los Tratados de la Soledad de 1862?", "a": "Acuerdos firmados después de la llegada de las flotas europeas a Veracruz y de la intervención diplomática de Manuel Doblado. Reconocían al gobierno de Juárez y prometían negociar el pago de la deuda."}, {"id": 42, "topic": "Intervención francesa", "q": "¿Qué hicieron Inglaterra, España y Francia después de los Tratados de la Soledad?", "a": "Los británicos y españoles se retiraron, pero los franceses continuaron su avance con ayuda de los conservadores mexicanos."}, {"id": 43, "topic": "Batalla de Puebla y caída de la República", "q": "¿Cuándo ocurrió la batalla de Puebla y quién comandó al ejército mexicano?", "a": "El 5 de mayo de 1862. El ejército mexicano fue comandado por el general Ignacio Zaragoza."}, {"id": 44, "topic": "Batalla de Puebla y caída de la República", "q": "¿En dónde derrotó Zaragoza al ejército francés el 5 de mayo de 1862?", "a": "En los fuertes de Loreto y Guadalupe. Participaron figuras como Porfirio Díaz y las milicias indígenas de Zacapoaxtla."}, {"id": 45, "topic": "Batalla de Puebla y caída de la República", "q": "¿Qué ocurrió después de la llegada de refuerzos franceses al mando del general Forey?", "a": "La capital cayó y se instauraron una Junta Provisional de Gobierno y una Asamblea de Notables."}, {"id": 46, "topic": "Batalla de Puebla y caída de la República", "q": "¿Qué decidió la Asamblea de Notables tras la ocupación de la capital?", "a": "Proclamó el Imperio mexicano y ofreció la corona a Maximiliano de Habsburgo, archiduque de Austria."}, {"id": 47, "topic": "Segundo Imperio", "q": "¿Cuándo llegaron Maximiliano y Carlota Amalia a México?", "a": "Llegaron a Veracruz en mayo de 1864."}, {"id": 48, "topic": "Segundo Imperio", "q": "¿Por qué Maximiliano se distanció de los conservadores que lo habían apoyado?", "a": "Porque tenía ideas liberales moderadas y aplicó leyes de Reforma, el laicismo y la libertad de cultos."}, {"id": 49, "topic": "Segundo Imperio", "q": "¿Qué documentos legales se elaboraron durante el Segundo Imperio?", "a": "El Estatuto Provisional del Imperio Mexicano y el Código Civil."}, {"id": 50, "topic": "Segundo Imperio", "q": "¿Qué medidas laborales impulsó el gobierno de Maximiliano?", "a": "Abolió el acasillamiento, suprimió la tienda de raya, estableció una jornada laboral máxima de 10 horas y prohibió los castigos corporales."}, {"id": 51, "topic": "Segundo Imperio", "q": "¿Qué proyecto urbano del Segundo Imperio dio origen al actual Paseo de la Reforma?", "a": "El Paseo del Emperador, proyectado durante el gobierno de Maximiliano."}, {"id": 52, "topic": "Segundo Imperio", "q": "¿Qué cambios urbanos promovió Maximiliano en la Ciudad de México?", "a": "Además de proyectar el Paseo del Emperador —hoy Paseo de la Reforma—, se impulsó el embellecimiento de la Ciudad de México."}, {"id": 53, "topic": "Segundo Imperio", "q": "¿Cómo mantuvo Juárez vivo al gobierno republicano durante el Imperio?", "a": "Trasladó el gobierno por diversas ciudades, entre ellas San Luis Potosí, Saltillo y Paso del Norte."}, {"id": 54, "topic": "Segundo Imperio", "q": "¿Qué generales encabezaron guerrillas republicanas durante la resistencia contra el Imperio?", "a": "Ramón Corona en el Norte, Mariano Escobedo en Occidente y Porfirio Díaz en Oriente."}, {"id": 55, "topic": "Segundo Imperio", "q": "¿Qué cambió en 1865 que favoreció a los republicanos mexicanos?", "a": "Terminó la Guerra Civil estadounidense y Estados Unidos apoyó a los liberales mexicanos con préstamos y protestas diplomáticas."}, {"id": 56, "topic": "Segundo Imperio", "q": "¿Por qué Napoleón III comenzó a retirar sus tropas de México?", "a": "Presionado por Prusia, comenzó a retirar sus tropas a principios de 1866."}, {"id": 57, "topic": "Segundo Imperio", "q": "¿Cuándo y dónde fue capturado y fusilado Maximiliano? ¿Quiénes murieron con él?", "a": "Fue capturado tras el sitio de Querétaro y fusilado el 19 de junio de 1867 junto con los generales Miguel Miramón y Tomás Mejía."}, {"id": 58, "topic": "República Restaurada", "q": "¿Qué periodo abarcó la República Restaurada?", "a": "De 1867 a 1876."}, {"id": 59, "topic": "República Restaurada", "q": "¿Qué buscó Benito Juárez durante su gobierno de 1867 a 1872?", "a": "Reanudar el orden constitucional e impulsar la unificación del país."}, {"id": 60, "topic": "República Restaurada", "q": "¿Qué institución educativa se creó con la Ley Orgánica de Instrucción Pública de 1867?", "a": "La Escuela Nacional Preparatoria, bajo la influencia positivista de Gabino Barreda."}, {"id": 61, "topic": "República Restaurada", "q": "¿Con qué lema se asoció la influencia positivista de Gabino Barreda?", "a": "“Libertad, orden y progreso”."}, {"id": 62, "topic": "República Restaurada", "q": "¿Qué obras y objetivos de modernización impulsó el gobierno de Juárez?", "a": "Buscó pacificar el territorio y construir vías férreas y líneas telegráficas para consolidar un Estado fuerte y moderno."}, {"id": 63, "topic": "República Restaurada", "q": "¿Por qué surgió el Plan de la Noria en 1871?", "a": "Por la reelección de Juárez, que dividió al Partido Liberal y dio lugar a la candidatura de Sebastián Lerdo de Tejada. Porfirio Díaz se levantó contra la reelección indefinida mediante el Plan de la Noria."}, {"id": 64, "topic": "República Restaurada", "q": "¿Qué ocurrió tras la muerte de Benito Juárez en 1872?", "a": "Murió el 18 de julio de 1872. Sebastián Lerdo de Tejada asumió provisionalmente la presidencia y después fue elegido para el periodo 1872-1876."}, {"id": 65, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Qué hizo Sebastián Lerdo de Tejada al asumir la presidencia?", "a": "Se apegó a la Constitución y decretó una ley de amnistía para pacificar las revueltas del país."}, {"id": 66, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Qué medidas anticlericales tomó Lerdo de Tejada?", "a": "Prohibió las manifestaciones públicas de culto, expulsó a jesuitas sospechosos de conspirar, elevó las Leyes de Reforma a rango constitucional, disolvió la orden de las Hermanas de la Caridad e impidió el retorno de la Compañía de Jesús."}, {"id": 67, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Qué consecuencia provocaron las medidas anticlericales de Lerdo?", "a": "Causaron descontento generalizado y una revuelta de inspiración religiosa en Michoacán."}, {"id": 68, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Qué características tuvo la economía durante el gobierno de Lerdo?", "a": "Continuó la política juarista, favoreciendo a latifundistas nacionales y extranjeros, mientras la producción agrícola siguió siendo mayoritariamente de autoconsumo."}, {"id": 69, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Qué importancia tuvo el ferrocarril México-Veracruz en 1873?", "a": "Fue inaugurado en 1873 al reanudarse la concesión a una compañía inglesa. También se expandieron las vías férreas y la red telegráfica nacional."}, {"id": 70, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Qué medidas se tomaron respecto a la hacienda pública y la deuda?", "a": "Se reestructuró la administración y la hacienda pública, se redujo la deuda externa a baja escala y se intentó reactivar la economía mediante inversión extranjera y reformas fiscales y a la Ley del Timbre."}, {"id": 71, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Qué buscaba la ley de colonización de 1875?", "a": "Atraer colonos extranjeros para poblar ciertas regiones, aunque tuvo poco efecto."}, {"id": 72, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Cómo afectaron las medidas agrarias de Lerdo a las tierras comunales indígenas?", "a": "Se agravó el problema de la tenencia de la tierra al intentar establecer el minifundio mediante el reparto de tierras comunales indígenas."}, {"id": 73, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Qué fue el Gran Círculo de Obreros y qué promovía?", "a": "Una organización de obreros y artesanos que promovía mejores salarios, huelgas y cooperativas. Estaba influida por ideas socialistas."}, {"id": 74, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Qué cambio legislativo realizó Lerdo en 1874?", "a": "Restableció la Cámara de Senadores para dividir el Poder Legislativo en dos cámaras, equilibrar el poder y limitar la fuerza de la Cámara de Diputados."}, {"id": 75, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Por qué tuvo un conflicto Lerdo con José María Iglesias?", "a": "Porque Lerdo nombró jueces de distrito y circuito y promulgó una ley el 19 de mayo de 1875 que buscaba restringir las facultades de la Suprema Corte, presidida por Iglesias."}, {"id": 76, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Qué figuras destacaron en el nacionalismo cultural posterior a la intervención francesa?", "a": "Vicente Riva Palacio e Ignacio Manuel Altamirano, entre otros, destacaron en corrientes costumbristas de literatura, pintura y música."}, {"id": 77, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Qué periódicos liberales destacaron durante la República Restaurada?", "a": "El Monitor Republicano y El Siglo XIX; entre sus colaboradores destacó Francisco Zarco."}, {"id": 78, "topic": "Gobierno de Lerdo de Tejada", "q": "¿Qué periódicos conservadores menciona la guía?", "a": "El Universal y La Cruz."}, {"id": 79, "topic": "Plan de Tuxtepec", "q": "¿Quién encabezó el Plan de Tuxtepec y a quién desconocía?", "a": "Porfirio Díaz lo encabezó en 1876 y desconocía a Sebastián Lerdo de Tejada como presidente."}, {"id": 80, "topic": "Plan de Tuxtepec", "q": "¿Cuáles fueron los puntos principales del Plan de Tuxtepec?", "a": "Designaba a Porfirio Díaz jefe del ejército; establecía la No Reelección; exigía respetar la Constitución de 1857 y las Leyes de Reforma; y se oponía al restablecimiento del Senado y a la Ley del Timbre."}, {"id": 81, "topic": "Plan de Tuxtepec", "q": "¿Qué hizo José María Iglesias ante el intento de reelección de Lerdo en 1876?", "a": "Declaró ilegal la reelección y se autonombró presidente interino en Guanajuato."}, {"id": 82, "topic": "Plan de Tuxtepec", "q": "¿Qué ocurrió en la batalla de Tecoac y cuál fue su consecuencia?", "a": "En Tecoac, Tlaxcala, las fuerzas de Porfirio Díaz derrotaron a las tropas gubernamentales. Lerdo abandonó el poder y Díaz entró triunfante a la Ciudad de México en noviembre de 1876."}, {"id": 83, "topic": "Porfiriato: ascenso y conciliación", "q": "¿Qué periodo abarcó el Porfiriato según la guía?", "a": "Desde el ascenso de Porfirio Díaz al poder a finales de 1876 hasta su renuncia a la presidencia en mayo de 1911."}, {"id": 84, "topic": "Porfiriato: ascenso y conciliación", "q": "¿En qué consistió la política de conciliación de Porfirio Díaz?", "a": "Buscó estabilizar el país después de décadas de conflictos, conciliando a liberales, conservadores, iglesistas y lerdistas mediante la distribución de cargos públicos y el acercamiento del clero al poder político."}, {"id": 85, "topic": "Porfiriato: ascenso y conciliación", "q": "¿Cómo enfrentó Díaz a sus adversarios y levantamientos?", "a": "Recurrió a la persecución y al uso de la fuerza contra levantamientos de adversarios o lerdistas."}, {"id": 86, "topic": "Porfiriato: ascenso y conciliación", "q": "¿Qué grupos y actividades combatió el gobierno porfirista mediante la fuerza?", "a": "Combatió a los llamados “indios bárbaros” de Sonora y Chihuahua y persiguió el bandolerismo; la guía menciona a Chucho El Roto y Heraclio Bernal."}, {"id": 87, "topic": "Porfiriato: ascenso y conciliación", "q": "¿Qué eran los rurales y qué fue la Ley fuga durante el Porfiriato?", "a": "Los rurales eran la policía rural utilizada por el régimen. La Ley fuga fue un mecanismo represivo aplicado de manera regular, según la guía."}, {"id": 88, "topic": "Porfiriato: ascenso y conciliación", "q": "¿Por qué gobernó Manuel González entre 1880 y 1884?", "a": "Para cumplir con el principio de no reelección, Díaz convocó elecciones que ganó Manuel González; al terminar su periodo, Díaz volvió a postularse porque la Constitución permitía reelegirse después de un periodo intermedio."}, {"id": 89, "topic": "Porfiriato: ascenso y conciliación", "q": "¿Qué problemas caracterizaron al gobierno de Manuel González?", "a": "Problemas de finanzas públicas, el reconocimiento de la deuda inglesa y la circulación de moneda de níquel."}, {"id": 90, "topic": "Porfiriato: política", "q": "¿En qué consistió la centralización del poder durante el Porfiriato?", "a": "Díaz controló los poderes Legislativo y Judicial y subordinó la soberanía de los estados mediante gobernadores incondicionales, jefes políticos y caciques."}, {"id": 91, "topic": "Porfiriato: política", "q": "¿Qué cambios constitucionales facilitaron la reelección de Díaz?", "a": "En 1884 se reformó la Constitución para permitir su reelección. En 1903 se eliminaron los límites legales y el periodo presidencial aumentó de cuatro a seis años."}, {"id": 92, "topic": "Porfiriato: política", "q": "¿Qué fue el Partido Unión Liberal y quiénes eran algunos de sus científicos?", "a": "Fue un partido que apoyaba la idea de gobernar “según la ciencia”. Entre sus científicos destacaron Manuel Romero Rubio, Justo Sierra y José Yves Limantour."}, {"id": 93, "topic": "Porfiriato: política", "q": "¿Por qué las elecciones porfiristas eran consideradas una simulación?", "a": "Aunque se celebraban periódicamente hasta 1910, funcionaban como un rito para aparentar democracia, mientras la oposición real era perseguida y encarcelada."}, {"id": 94, "topic": "Porfiriato: política", "q": "¿Cómo calificó Daniel Cosío Villegas a las cámaras legislativas porfiristas?", "a": "Las calificó como una “gerontocracia” o un museo de historia natural, debido a su sumisión absoluta al Poder Ejecutivo."}, {"id": 95, "topic": "Porfiriato: política", "q": "¿Qué fue la Pax Porfiriana?", "a": "Una paz forzada, sostenida mediante la represión y la persecución de la oposición intelectual, política o militar."}, {"id": 96, "topic": "Porfiriato: economía", "q": "¿En qué contexto mundial se desarrolló el Porfiriato?", "a": "Durante el auge del imperialismo capitalista y la Segunda Revolución Industrial, cuando las potencias buscaban materias primas y nuevos mercados en el reparto del mundo."}, {"id": 97, "topic": "Porfiriato: economía", "q": "¿Qué transformaciones económicas vivió México durante el Porfiriato?", "a": "Hubo un desarrollo importante de la siderurgia, las comunicaciones y los transportes. México se integró al mercado mundial, pero quedó subordinado a capitales extranjeros y con un poder estatal centralizado."}, {"id": 98, "topic": "Porfiriato: economía", "q": "¿Cuáles fueron las características de la primera etapa de la economía porfiriana (1877-1895)?", "a": "Se redujeron los gastos presupuestales, se buscó resolver la crisis financiera de 1891 y se arregló la deuda pública interna y externa."}, {"id": 99, "topic": "Porfiriato: economía", "q": "¿Cuáles fueron las características de la segunda etapa económica porfiriana (1896-1910)?", "a": "Se modificó el sistema de impuestos para captar más ingresos, se equilibraron las finanzas y se logró por primera vez en la historia de México el equilibrio del presupuesto."}, {"id": 100, "topic": "Porfiriato: economía", "q": "¿Qué contradicción existía entre la prosperidad económica y la situación social durante el Porfiriato?", "a": "La prosperidad contrastaba con la miseria de la mayoría. Mientras la burguesía vivía su propia “Bella Époque”, los trabajadores de minas, fábricas y talleres padecían condiciones infrahumanas."}, {"id": 101, "topic": "Porfiriato: economía", "q": "¿Qué consecuencias sociales tuvo la desigualdad económica porfirista?", "a": "Fortaleció los movimientos obreros y favoreció el surgimiento del sindicalismo y el socialismo."}, {"id": 102, "topic": "Inversión extranjera y banca", "q": "¿Cuál era el objetivo de Díaz respecto a la inversión extranjera?", "a": "Atraer capitales y mantener un equilibrio entre Estados Unidos y Europa para evitar que una sola potencia dominara la economía mexicana."}, {"id": 103, "topic": "Inversión extranjera y banca", "q": "¿Qué factores alentaron la llegada de capital extranjero?", "a": "Leyes favorables a los inversionistas, facilidades para explotar la fuerza de trabajo mediante leyes favorables a los patrones, subsidios en sectores estratégicos como los ferrocarriles y exenciones fiscales a las exportaciones."}, {"id": 104, "topic": "Inversión extranjera y banca", "q": "¿Qué leyes porfiristas favorecieron la inversión minera y el deslinde de tierras?", "a": "La Ley de Minería de 1886 y la Ley de Deslindes de 1887."}, {"id": 105, "topic": "Inversión extranjera y banca", "q": "¿Cómo se formó el Banco Nacional de México?", "a": "En 1881 se fundó el Banco Nacional Mexicano con capital francés; después se creó el Banco Mercantil Mexicano. Ambos se fusionaron en 1884 para formar el Banco Nacional de México."}, {"id": 106, "topic": "Inversión extranjera y banca", "q": "¿Qué efectos tuvieron las políticas económicas de José Yves Limantour al final del Porfiriato?", "a": "Estabilizaron la macroeconomía, pero generaron descontento por nuevos impuestos, reducción de salarios, devaluación del peso y aumento de la deuda externa."}, {"id": 107, "topic": "Tecnología e infraestructura", "q": "¿Qué propósito tuvo la expansión de los ferrocarriles durante el Porfiriato?", "a": "Conectar centros de producción con puertos y reducir los costos de traslado. Al principio hubo concesiones inglesas, como la ruta México-Veracruz, y después se impulsaron empresas estadounidenses para conectar la capital con la frontera norte."}, {"id": 108, "topic": "Tecnología e infraestructura", "q": "¿Cuándo se estableció la primera central telefónica en la Ciudad de México?", "a": "En 1907."}, {"id": 109, "topic": "Tecnología e infraestructura", "q": "¿Cuándo comenzó a utilizarse la energía eléctrica para el alumbrado público en Ciudad de México y Puebla?", "a": "A partir de 1888, sustituyendo los faroles de gas."}, {"id": 110, "topic": "Tecnología e infraestructura", "q": "¿Qué otro medio de transporte urbano se incorporó durante el Porfiriato?", "a": "Los tranvías eléctricos."}, {"id": 111, "topic": "Sectores económicos", "q": "¿Qué productos agrícolas se produjeron y exportaron a gran escala durante el Porfiriato?", "a": "Henequén, azúcar, café y algodón. La hacienda se convirtió en la principal unidad agraria y predominó el latifundismo."}, {"id": 112, "topic": "Sectores económicos", "q": "¿Qué cambios hubo en la ganadería bovina porfirista y dónde se concentró?", "a": "Aumentó el ganado bovino destinado al mercado estadounidense, principalmente en Chihuahua, Sonora, Jalisco, Tamaulipas y Zacatecas."}, {"id": 113, "topic": "Sectores económicos", "q": "¿En qué estados se concentró la ganadería ovina y caprina?", "a": "Oaxaca, Guerrero y Puebla."}, {"id": 114, "topic": "Sectores económicos", "q": "¿Qué ocurrió con la minería durante el Porfiriato?", "a": "Aumentó la producción de minerales industriales, como cobre y hierro. La minería de exportación se concentró en Sonora, Chihuahua, Sinaloa y Durango."}, {"id": 115, "topic": "Sectores económicos", "q": "¿Qué actividades industriales se desarrollaron durante el Porfiriato?", "a": "Comenzó la extracción de petróleo y la producción de combustibles, además de instalarse fábricas textiles."}, {"id": 116, "topic": "Estructura social", "q": "¿Cómo cambió la población de México durante el Porfiriato?", "a": "Creció de aproximadamente 10 a 15 millones de habitantes."}, {"id": 117, "topic": "Estructura social", "q": "¿Quiénes integraban la burguesía extranjera y la burguesía nacional urbana?", "a": "La burguesía extranjera estaba formada principalmente por estadounidenses y europeos con mayor poder económico. La burguesía nacional incluía a los científicos y al grupo gobernante."}, {"id": 118, "topic": "Estructura social", "q": "¿Quiénes formaban la clase media o pequeña burguesía urbana?", "a": "Profesionistas, intelectuales, pequeños comerciantes, empleados y mandos medios del ejército y del clero."}, {"id": 119, "topic": "Estructura social", "q": "¿Quiénes integraban el sector popular urbano?", "a": "Obreros, sirvientes, vendedores ambulantes, artesanos y dependientes comerciales."}, {"id": 120, "topic": "Estructura social", "q": "¿Qué papel tenían el clero y el ejército en el sector rural porfirista?", "a": "Recobraron fueros y apoyaban al régimen."}, {"id": 121, "topic": "Estructura social", "q": "¿Qué grupos componían la estructura social de la hacienda?", "a": "Terratenientes, caciques, peones acasillados y trabajadores temporales."}, {"id": 122, "topic": "Estructura social", "q": "¿Cuál era la situación de los pueblos indígenas y los comuneros durante el Porfiriato?", "a": "Los pueblos indígenas fueron sometidos, despojados de sus tierras y explotados; los comuneros quedaron marginados económica y socialmente."}, {"id": 123, "topic": "Educación y cultura", "q": "¿Qué lema positivista orientó el proyecto de modernización porfirista?", "a": "“Orden, paz y progreso”."}, {"id": 124, "topic": "Educación y cultura", "q": "¿Qué ocurrió en materia educativa durante los Congresos Nacionales de Educación de 1889-1890?", "a": "Se impulsaron medidas de organización y modernización educativa; la guía destaca que la enseñanza primaria fue declarada obligatoria, gratuita y laica para niñas y niños de 6 a 12 años."}, {"id": 125, "topic": "Educación y cultura", "q": "¿Qué instituciones educativas se crearon durante el Porfiriato y en qué años?", "a": "Se creó la Escuela Nacional de Maestros; en 1905, la Secretaría de Instrucción Pública y Bellas Artes; y en 1910, Justo Sierra promovió la fundación de la Universidad Nacional de México."}, {"id": 126, "topic": "Educación y cultura", "q": "¿Qué porcentaje de la población era analfabeta pese a los avances educativos porfiristas?", "a": "El 84% de la población."}, {"id": 127, "topic": "Educación y cultura", "q": "¿Qué corrientes literarias y revistas destacaron durante el Porfiriato?", "a": "El realismo y el modernismo. Destacaron Revista Azul y Revista Moderna."}, {"id": 128, "topic": "Educación y cultura", "q": "¿Qué escritores menciona la guía como figuras de la literatura porfirista?", "a": "Emilio Rabasa, Amado Nervo, Manuel Acuña y Manuel Gutiérrez Nájera."}, {"id": 129, "topic": "Educación y cultura", "q": "¿Qué artistas destacaron en la pintura y el grabado porfiristas?", "a": "José María Velasco, por sus paisajes del Valle de México, y José Guadalupe Posada, por sus grabados con temática de calaveras."}, {"id": 130, "topic": "Educación y cultura", "q": "¿Qué estilos arquitectónicos y edificios se mencionan del Porfiriato?", "a": "Los estilos ecléctico y Art Nouveau; se mencionan el Palacio de Bellas Artes y el Edificio de Correos."}, {"id": 131, "topic": "Educación y cultura", "q": "¿Qué fue el Ateneo de la Juventud?", "a": "Un movimiento que agrupó a jóvenes intelectuales críticos de la filosofía positivista del régimen."}, {"id": 132, "topic": "Movimientos sociales y huelgas", "q": "¿Qué impacto tuvieron las Leyes de Deslinde y Colonización sobre las tierras comunales?", "a": "Afectaron 49 millones de hectáreas y despojaron de tierras comunales a pueblos indígenas en favor de latifundistas."}, {"id": 133, "topic": "Movimientos sociales y huelgas", "q": "¿Qué rebeliones indígenas destacaron durante el Porfiriato?", "a": "Las rebeliones de los yaquis en Sonora y de la población maya en la península de Yucatán. Fueron reprimidas y sus integrantes trasladados por la fuerza."}, {"id": 134, "topic": "Movimientos sociales y huelgas", "q": "¿Qué fue la masacre de Tomóchic?", "a": "Una insurrección del pueblo de Tomóchic, Chihuahua, en 1891-1892, en defensa de su autonomía, que fue reprimida violentamente por el ejército porfirista."}, {"id": 135, "topic": "Movimientos sociales y huelgas", "q": "¿En qué condiciones trabajaban muchos obreros durante el Porfiriato?", "a": "Tenían jornadas de 12 a 14 horas y recibían salarios en tiendas de raya mediante vales o fichas."}, {"id": 136, "topic": "Movimientos sociales y huelgas", "q": "¿Quiénes fueron los hermanos Flores Magón y qué medios utilizaron para difundir sus ideas?", "a": "Ricardo, Enrique y Jesús Flores Magón difundieron sus ideas mediante el periódico Regeneración y la fundación del Partido Liberal Mexicano (PLM) en 1906."}, {"id": 137, "topic": "Movimientos sociales y huelgas", "q": "¿Qué ideas y demandas promovieron los Flores Magón?", "a": "Ideas anarcosindicalistas, protección a los indígenas, jornada laboral de ocho horas y prohibición del trabajo infantil."}, {"id": 138, "topic": "Movimientos sociales y huelgas", "q": "¿Qué exigían los trabajadores en la huelga de Cananea de 1906?", "a": "Los mineros de la Green Consolidated Mining Co., en Sonora, exigían salarios iguales a los de los empleados estadounidenses. Fueron agredidos por soldados traídos de Estados Unidos y la huelga fue sofocada."}, {"id": 139, "topic": "Movimientos sociales y huelgas", "q": "¿Qué ocurrió en la huelga de Río Blanco de 1907?", "a": "Los obreros textiles de Veracruz protestaron contra el reglamento de trabajo y la huelga fue reprimida violentamente por el ejército mexicano."}, {"id": 140, "topic": "Crisis del Porfiriato y Revolución", "q": "¿Qué declaró Porfirio Díaz en la entrevista con James Creelman de 1908?", "a": "Declaró que México estaba listo para la democracia y que no se postularía en 1910. Esto impulsó la creación de partidos políticos de oposición."}, {"id": 141, "topic": "Crisis del Porfiriato y Revolución", "q": "¿Qué libro publicó Francisco I. Madero antes de las elecciones de 1910?", "a": "La sucesión presidencial en 1910."}, {"id": 142, "topic": "Crisis del Porfiriato y Revolución", "q": "¿Qué organización política fundó Madero para impulsar la oposición?", "a": "El Centro Antirreeleccionista."}, {"id": 143, "topic": "Crisis del Porfiriato y Revolución", "q": "¿Qué hizo Díaz ante la popularidad de Madero durante sus giras políticas?", "a": "Lo encarceló en San Luis Potosí y se declaró ganador de las elecciones de 1910, para el periodo 1910-1916."}, {"id": 144, "topic": "Crisis del Porfiriato y Revolución", "q": "¿Desde dónde promulgó Madero el Plan de San Luis y qué desconocía?", "a": "Después de escapar de prisión, lo promulgó desde Estados Unidos. Declaraba nulas las elecciones y desconocía al gobierno de Díaz."}, {"id": 145, "topic": "Crisis del Porfiriato y Revolución", "q": "¿Qué lema político exigía el Plan de San Luis?", "a": "“Sufragio efectivo, no reelección”."}, {"id": 146, "topic": "Crisis del Porfiriato y Revolución", "q": "¿Qué planteaba el Plan de San Luis respecto a la tierra?", "a": "Proponía restituir las tierras a sus antiguos propietarios."}, {"id": 147, "topic": "Crisis del Porfiriato y Revolución", "q": "¿Qué fecha estableció Madero para el levantamiento armado que inició la Revolución Mexicana?", "a": "El 20 de noviembre de 1910."}, {"id": 148, "topic": "Repaso y conexiones", "q": "¿Qué relación hay entre la Revolución de Ayutla y la Constitución de 1857?", "a": "La Revolución de Ayutla terminó con el último gobierno de Santa Anna y dio origen al Congreso que redactó la Constitución de 1857."}, {"id": 149, "topic": "Repaso y conexiones", "q": "¿Cuál fue la causa inmediata de la Guerra de Reforma y cuál fue uno de sus resultados?", "a": "La oposición conservadora a la Constitución de 1857 y el Plan de Tacubaya provocaron el conflicto. Tras la victoria liberal, Juárez regresó a la capital y se profundizaron las Leyes de Reforma."}, {"id": 150, "topic": "Repaso y conexiones", "q": "¿Cómo se relacionan la suspensión de la deuda de 1861 y la intervención francesa?", "a": "La suspensión por dos años del pago de la deuda inconformó a Inglaterra, España y Francia. Francia la utilizó como pretexto para intervenir, aunque también existía el proyecto monárquico impulsado con Napoleón III."}, {"id": 151, "topic": "Repaso y conexiones", "q": "¿Qué diferencia importante hubo entre el apoyo conservador a Maximiliano y las ideas del emperador?", "a": "Los conservadores lo apoyaron para establecer una monarquía, pero Maximiliano aplicó medidas liberales moderadas, como las leyes de Reforma, el laicismo y la libertad de cultos, por lo que se distanció de ellos."}, {"id": 152, "topic": "Repaso y conexiones", "q": "¿Qué diferencia política general hubo entre la República Restaurada y el Porfiriato?", "a": "La República Restaurada buscó reanudar el orden constitucional y unificar el país; durante el Porfiriato se centralizó el poder en Díaz, se controlaron las elecciones y se reprimió a la oposición."}, {"id": 153, "topic": "Repaso y conexiones", "q": "¿Qué contradicción definió al Porfiriato?", "a": "La modernización económica y de infraestructura convivió con una profunda desigualdad social, explotación laboral, despojo de tierras y represión política."}, {"id": 154, "topic": "Repaso y conexiones", "q": "¿Cómo se conectan las huelgas de Cananea y Río Blanco con el inicio de la Revolución?", "a": "Expresaron el descontento obrero ante las condiciones laborales y la represión porfirista. Formaron parte de la crisis social y política que debilitó al régimen antes de 1910."}, {"id": 155, "topic": "Repaso y conexiones", "q": "Ordena estos acontecimientos por fecha: Plan de Ayutla, Constitución de 1857, Guerra de Reforma, llegada de Maximiliano, fusilamiento de Maximiliano y Plan de Tuxtepec.", "a": "Plan de Ayutla (1854) → Constitución de 1857 → Guerra de Reforma (1858-1860) → llegada de Maximiliano (1864) → fusilamiento de Maximiliano (1867) → Plan de Tuxtepec (1876)."}, {"id": 156, "topic": "Repaso y conexiones", "q": "¿Qué fechas delimitan la República Restaurada y cuáles delimitan el Porfiriato según la guía?", "a": "La República Restaurada: 1867-1876. El Porfiriato: desde finales de 1876 hasta la renuncia de Díaz en mayo de 1911."}, {"id": 157, "topic": "Repaso y conexiones", "q": "¿Qué acontecimientos de 1906, 1907, 1908 y 1910 conviene relacionar al estudiar el final del Porfiriato?", "a": "1906: huelga de Cananea y fundación del PLM. 1907: huelga de Río Blanco. 1908: entrevista Díaz-Creelman. 1910: elecciones, Plan de San Luis y llamado al levantamiento del 20 de noviembre."}];
+let cards = [...originalCards];
+let current = 0;
+let flipped = false;
+let showPendingOnly = false;
+const mastered = new Set();
+
+const $ = (id) => document.getElementById(id);
+const searchInput = $('searchInput');
+const topicSelect = $('topicSelect');
+const flashcard = $('flashcard');
+
+const topics = [...new Set(originalCards.map(card => card.topic))];
+topics.forEach(topic => {
+  const option = document.createElement('option');
+  option.value = topic;
+  option.textContent = topic;
+  topicSelect.appendChild(option);
+});
+
+function visibleCards() {
+  const query = searchInput.value.trim().toLocaleLowerCase('es');
+  return cards.filter(card => {
+    const topicMatch = topicSelect.value === 'all' || card.topic === topicSelect.value;
+    const textMatch = !query || `${card.topic} ${card.q} ${card.a}`.toLocaleLowerCase('es').includes(query);
+    const pendingMatch = !showPendingOnly || !mastered.has(card.id);
+    return topicMatch && textMatch && pendingMatch;
+  });
+}
+let shown = visibleCards();
+
+function updateStats() {
+  $('totalStat').textContent = originalCards.length;
+  $('masteredStat').textContent = mastered.size;
+  $('remainingStat').textContent = originalCards.length - mastered.size;
+  $('progressBar').style.width = `${(mastered.size / originalCards.length) * 100}%`;
+}
+
+function render() {
+  shown = visibleCards();
+  $('flipBtn').textContent = 'Voltear tarjeta ↻';
+  if (current >= shown.length) current = Math.max(0, shown.length - 1);
+  flipped = false;
+  flashcard.classList.remove('flipped');
+  flashcard.setAttribute('aria-pressed', 'false');
+  const hasCards = shown.length > 0;
+  $('stage').style.display = hasCards ? 'block' : 'none';
+  $('controls').style.display = hasCards ? 'flex' : 'none';
+  $('markRow').style.display = hasCards ? 'flex' : 'none';
+  if (!hasCards) {
+    let empty = $('emptyState');
+    if (!empty) {
+      empty = document.createElement('div');
+      empty.id = 'emptyState';
+      empty.className = 'empty';
+      empty.innerHTML = '<strong>No hay tarjetas que coincidan.</strong>Prueba con otra búsqueda o cambia el filtro.';
+      $('stage').after(empty);
+    }
+  } else {
+    const empty = $('emptyState');
+    if (empty) empty.remove();
+    const card = shown[current];
+    $('frontTopic').textContent = card.topic;
+    $('backTopic').textContent = card.topic;
+    $('questionText').textContent = card.q;
+    $('answerText').textContent = card.a;
+    $('frontNumber').textContent = `Tarjeta ${current + 1} de ${shown.length}`;
+    $('backNumber').textContent = `Respuesta · ${current + 1} de ${shown.length}`;
+    $('position').textContent = `${current + 1} / ${shown.length}`;
+    $('topicLabel').textContent = topicSelect.value === 'all' ? 'Todos los temas' : topicSelect.value;
+    const isMastered = mastered.has(card.id);
+    $('masterBtn').textContent = isMastered ? '✓ Dominada' : '✓ La domino';
+    $('masterBtn').classList.toggle('done', isMastered);
+    $('prevBtn').disabled = shown.length < 2;
+    $('nextBtn').disabled = shown.length < 2;
+  }
+  if (!hasCards) {
+    $('position').textContent = '0 / 0';
+    $('topicLabel').textContent = topicSelect.value === 'all' ? 'Todos los temas' : topicSelect.value;
+  }
+  $('pendingBtn').textContent = showPendingOnly ? 'Ver todas' : 'Ver pendientes';
+  $('pendingBtn').setAttribute('aria-pressed', String(showPendingOnly));
+  updateStats();
+}
+
+function flip() {
+  if (!shown.length) return;
+  flipped = !flipped;
+  flashcard.classList.toggle('flipped', flipped);
+  flashcard.setAttribute('aria-pressed', String(flipped));
+  $('flipBtn').textContent = flipped ? 'Ver pregunta ↻' : 'Voltear tarjeta ↻';
+}
+function move(delta) {
+  if (!shown.length) return;
+  current = (current + delta + shown.length) % shown.length;
+  render();
+}
+
+flashcard.addEventListener('click', flip);
+$('flipBtn').addEventListener('click', flip);
+$('prevBtn').addEventListener('click', () => move(-1));
+$('nextBtn').addEventListener('click', () => move(1));
+$('masterBtn').addEventListener('click', () => {
+  if (!shown.length) return;
+  const id = shown[current].id;
+  if (mastered.has(id)) mastered.delete(id); else mastered.add(id);
+  render();
+});
+searchInput.addEventListener('input', () => { current = 0; render(); });
+topicSelect.addEventListener('change', () => { current = 0; render(); });
+$('pendingBtn').addEventListener('click', () => { showPendingOnly = !showPendingOnly; current = 0; render(); });
+$('shuffleBtn').addEventListener('click', () => {
+  for (let i = cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  current = 0;
+  render();
+});
+$('resetBtn').addEventListener('click', () => {
+  if (!confirm('¿Reiniciar las tarjetas marcadas como dominadas?')) return;
+  mastered.clear();
+  cards = [...originalCards];
+  current = 0;
+  showPendingOnly = false;
+  $('pendingBtn').setAttribute('aria-pressed', 'false');
+  render();
+});
+document.addEventListener('keydown', event => {
+  if (event.target === searchInput || event.target === topicSelect) return;
+  if (event.code === 'Space') { event.preventDefault(); flip(); }
+  if (event.key === 'ArrowLeft') move(-1);
+  if (event.key === 'ArrowRight') move(1);
+});
+render();
+</script>
+</body>
+</html>
